@@ -244,8 +244,17 @@ typedef struct {
     ItemDescriptor Items[VLQUValue(Size)] <optimize=false>;
 } ItemBag;
 
+typedef enum <unsigned char> {
+    INVALID = 0,
+    Bag = 1,
+    TileBag = 2,
+    ActionBar = 3,
+    Equipment = 4,
+    Wieldable = 5
+} BagType;
+
 typedef struct {
-    unsigned char BagID;
+    BagType Bag;
     VLQS SlotNumber;
 } InventorySlot;
 
@@ -263,6 +272,11 @@ typedef struct {
 } PlayerInventory;
 
 typedef struct {
+    VLQU DatastreamSize;
+    VLQU Unknown1;
+} PlayerBlueprintLibrary;
+
+typedef struct {
     unsigned char Header[6];
     int VersionNumber; // Hard coded as 418 at the moment
     VLQU DatastreamSize;
@@ -273,6 +287,7 @@ typedef struct {
     UTF8Str Description;
     double PlayTime;
     PlayerInventory Inventory;
+    PlayerBlueprintLibrary BlueprintLibrary;
 } StarSave;
 
 StarSave Save;
