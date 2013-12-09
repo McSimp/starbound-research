@@ -7,7 +7,10 @@
 // Purpose:
 //--------------------------------------
 
+typedef unsigned char bool;
+
 typedef struct {
+    bool Initialized;
     unsigned char Data[16];
 } UUID;
 
@@ -29,52 +32,54 @@ typedef struct {
 } RGBAColor;
 
 typedef struct {
-    UTF8Str IdleString1;
-    UTF8Str IdleString2;
-    float UnknownFloat1;
-    float UnknownFloat2;
-    float UnknownFloat3;
-    float UnknownFloat4;
+    float X;
+    float Y;
+} Vec2F;
+
+typedef struct {
+    UTF8Str Idle;
+    UTF8Str ArmIdle;
+    Vec2F HeadOffset;
+    Vec2F ArmOffset;
 } Personality;
 
 typedef struct {
     UTF8Str Name;
     UTF8Str Species;
     GenderType Gender;
+    UTF8Str HairGroup;
     UTF8Str HairType;
-    UTF8Str HairName;
     UTF8Str HairDirectives;
     UTF8Str BodyDirectives;
-    UTF8Str UnknownStr3;
-    UTF8Str UnknownStr4;
-    UTF8Str UnknownStr5;
-    UTF8Str UnknownStr6;
-    UTF8Str UnknownStr7;
-    UTF8Str UnknownStr8;
+    UTF8Str FacialHairGroup;
+    UTF8Str FacialHairType;
+    UTF8Str FacialHairDirectives;
+    UTF8Str FacialMaskGroup;
+    UTF8Str FacialMaskType;
+    UTF8Str FacialMaskDirectives;
     Personality _Personality;
     RGBAColor FavoriteColor;
 } HumanoidIdentity;
 
 typedef struct {
-    unsigned char UnknownByte;
-    float UnknownFloat1;
-    float UnknownFloat2;
-    float UnknownFloat3;
-    float UnknownFloat4;
-    float UnknownFloat5;
-    float UnknownFloat6;
-    float UnknownFloat7;
-    float UnknownFloat8;
-    float UnknownFloat9;
-    float UnknownFloat10;
-    float UnknownFloat11;
-    float UnknownFloat12;
-    float UnknownFloat13;
-    float UnknownFloat14;
-    float UnknownFloat15;
-    float UnknownFloat16;
-    UTF8Str DamageType_Maybe;
-    UTF8Str DamageResponse_Maybe;
+    bool GodMode;
+    Vec2F BodyTemperatureRangeLow;
+    float IdealTemperature;
+    float BaseMaxWarmth;
+    float WarmthTransferRate_MANIPULATED;  // baseMaxWarmth * 0.016666668 / warmthTransferRate
+    float WarmthTransferRateCap;
+    float ComfortRegen;
+    float BaseMaxHealth;
+    float BaseMaxEnergy;
+    float EnergyReplenishmentRate;
+    float BaseMaxFood;
+    float FoodDepletionRate; 
+    float BaseMaxBreath;
+    float BreathReplenishmentRate;
+    float BreathDepletionRate;
+    float WindChillFactor;
+    UTF8Str BodyMaterialKind;
+    UTF8Str DamageConfig;
 } StatusEntityParameters;
 
 typedef struct {
@@ -88,16 +93,9 @@ typedef struct {
 } StringList;
 
 typedef struct {
-    unsigned char NumElements;
-    UTF8Str Str1;
-    UTF8Str Str2;
-    UTF8Str Str3;
-} StringList3;
-
-typedef struct {
     StatusValue Health;
     StatusValue Energy;
-    StatusValue Warmth;
+    StatusValue Warmth; // Is this right?
     StatusValue Food;
     StatusValue Breath;
     unsigned char UnknownByte;
@@ -111,14 +109,13 @@ typedef struct {
 typedef struct {
     unsigned char Header[6];
     int VersionNumber; // Hard coded as 418 at the moment
-    unsigned char Unknown1[3]; // ARGH WHAT THE FUCK IS THIS BECAUSE ITS WRONG
+    unsigned char Unknown1[2]; // ARGH WHAT THE FUCK IS THIS BECAUSE ITS WRONG
     UUID PlayerUUID;
     HumanoidIdentity Identity;
     StatusEntityParameters StatusEntityParms;
     Status PlayerStatus;
     UTF8Str Description;
     double UnkonwnDouble;
-    // More stuff here
 } StarSave;
 
 StarSave Save;
