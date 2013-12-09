@@ -1,10 +1,5 @@
 //--------------------------------------
 //--- 010 Editor v5.0 Binary Template
-//
-// File:
-// Author:
-// Revision:
-// Purpose:
 //--------------------------------------
 
 //////////////////////////////////////////////////
@@ -240,21 +235,31 @@ struct VariantList {
 
 typedef struct {
     UTF8Str Name;
-    VLQS StackSize;
+    VLQS Count;
     struct Variant ItemVariant;
 } ItemDescriptor;
 
 typedef struct {
-    VLQU BagSize;
-    ItemDescriptor Items[VLQUValue(BagSize)] <optimize=false>;
+    VLQU Size;
+    ItemDescriptor Items[VLQUValue(Size)] <optimize=false>;
 } ItemBag;
 
 typedef struct {
+    unsigned char BagID;
+    VLQS SlotNumber;
+} InventorySlot;
+
+typedef struct {
     VLQU DatastreamSize;
-    unsigned char Unknown1[8];
-    ItemBag Bag1;
-    ItemBag Bag2;
-    ItemBag Hotbar;
+    uint64 Money;
+    ItemBag BagContents;
+    ItemBag TileBagContents;
+    ItemBag ActionBarContents;
+    ItemBag Equipment;
+    ItemBag Wieldable;
+    ItemDescriptor SwapActive_UNKNOWN;
+    InventorySlot PrimaryHeldSlot;
+    InventorySlot AltHeldSlot;
 } PlayerInventory;
 
 typedef struct {
