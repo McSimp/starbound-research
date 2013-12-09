@@ -273,8 +273,15 @@ typedef struct {
 
 typedef struct {
     VLQU DatastreamSize;
-    VLQU Unknown1;
+    VLQU BlueprintCount;
+    ItemDescriptor Blueprints[VLQUValue(BlueprintCount)] <optimize=false>;
 } PlayerBlueprintLibrary;
+
+typedef struct {
+    VLQU DatastreamSize;
+    StringList UnknownStrings;
+    // more unknown data
+} TechController;
 
 typedef struct {
     unsigned char Header[6];
@@ -288,6 +295,7 @@ typedef struct {
     double PlayTime;
     PlayerInventory Inventory;
     PlayerBlueprintLibrary BlueprintLibrary;
+    TechController TechControllerConfig;
 } StarSave;
 
 StarSave Save;
