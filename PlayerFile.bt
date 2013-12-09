@@ -7,6 +7,54 @@
 // Purpose:
 //--------------------------------------
 
+//////////////////////////////////////////////////
+// VLQ Stuff
+//////////////////////////////////////////////////
+
+typedef struct {
+    ubyte val <comment="VLQ element">;
+    if(val > 0x7f) {
+        ubyte val <comment="VLQ element">;
+        if (val > 0x7f) {
+            ubyte val <comment="VLQ element">;
+            if(val > 0x7f) {
+                ubyte val <comment="VLQ element">;
+                if(val > 0x7f) {
+                    ubyte val <comment="VLQ element">;
+                }
+            }
+        }
+    }
+} VLQU <read=VLQURead, comment="Unsigned little-endian variable length quantity">;
+
+// get the actual uint value of the VLQ
+uint VLQUValue(VLQU &u) {
+    local uint result;
+    local ubyte cur;
+    local uint i;
+    
+    result = u.val[0];
+    if(result & 0x80)
+    {
+        result &= 0x7F;
+        i = 1;
+        do
+        {
+            cur = u.val[i++];
+            result = (result << 7) + (cur & 0x7F);
+        }
+        while(cur & 0x80);
+    }
+
+    return result;
+}
+
+string VLQURead(VLQU &u) {
+    local string s;
+    s = SPrintf(s, "%d", VLQUValue(u));
+    return s;
+}
+
 typedef unsigned char bool;
 
 typedef struct {
@@ -15,8 +63,8 @@ typedef struct {
 } UUID;
 
 typedef struct {
-    unsigned char Size;
-    char String[Size];
+    VLQU Size;
+    char String[VLQUValue(Size)];
 } UTF8Str;
 
 typedef enum <unsigned char> {
@@ -30,6 +78,13 @@ typedef struct {
     unsigned char B;
     unsigned char A;
 } RGBAColor;
+
+// Not 100% sure on this
+typedef struct {
+    float R;
+    float G;
+    float B;
+} RGB3F;
 
 typedef struct {
     float X;
@@ -98,10 +153,8 @@ typedef struct {
     StatusValue Warmth; // Is this right?
     StatusValue Food;
     StatusValue Breath;
-    unsigned char UnknownByte;
-    float UnknownFloat1;
-    float UnknownFloat2;
-    float UnknownFloat3;
+    bool Invulnerable;
+    RGB3F GlowColor;
     StringList UnknownStrList1;
     StringList UnknownStrList2;
 } Status;
@@ -109,7 +162,7 @@ typedef struct {
 typedef struct {
     unsigned char Header[6];
     int VersionNumber; // Hard coded as 418 at the moment
-    unsigned char Unknown1[2]; // ARGH WHAT THE FUCK IS THIS BECAUSE ITS WRONG
+    VLQU UnknownNumber;
     UUID PlayerUUID;
     HumanoidIdentity Identity;
     StatusEntityParameters StatusEntityParms;
