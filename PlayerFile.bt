@@ -55,6 +55,29 @@ string VLQURead(VLQU &u) {
     return s;
 }
 
+typedef VLQU VLQS <read=VLQSRead>;
+
+int VLQSValue(VLQS &u)
+{
+    local uint value;
+    value = VLQUValue(u);
+
+    if(value == 0)
+    {
+        return -1;
+    }
+    else
+    {
+        return value - 1;
+    }
+}
+
+string VLQSRead(VLQS &u) {
+    local string s;
+    s = SPrintf(s, "%d", VLQSValue(u));
+    return s;
+}
+
 typedef unsigned char bool;
 
 typedef struct {
@@ -63,9 +86,22 @@ typedef struct {
 } UUID;
 
 typedef struct {
-    VLQU Size;
-    char String[VLQUValue(Size)];
-} UTF8Str;
+    VLQU Length;
+    char String[VLQUValue(Length)] <optimize=false>;
+} UTF8Str <read=UTF8StrRead>;
+
+string UTF8StrRead(UTF8Str &str) {
+    local string s;
+    if(VLQUValue(str.Length) > 0)
+    {
+        s = SPrintf(s, "%s", str.String);
+    }
+    else
+    {
+        s = "";
+    }
+    return s;
+}
 
 typedef enum <unsigned char> {
     MALE,
@@ -143,8 +179,8 @@ typedef struct {
 } StatusValue;
 
 typedef struct {
-    unsigned char NumElements;
-    UTF8Str Strings[NumElements] <optimize=false>; 
+    VLQU Size;
+    UTF8Str Strings[VLQUValue(Size)] <optimize=false>; 
 } StringList;
 
 typedef struct {
@@ -159,6 +195,68 @@ typedef struct {
     StringList UnknownStrList2;
 } Status;
 
+struct Variant {
+    unsigned char VariantType;
+    if(VariantType == 7)
+    {
+        struct VariantMap Data;
+    }
+    else if(VariantType == 2)
+    {
+        double Data;
+    }
+    else if(VariantType == 5)
+    {
+        UTF8Str Data;
+    }
+    else if(VariantType == 4)
+    {
+        VLQS Data;
+    }
+    else if(VariantType == 3)
+    {
+        bool Data;
+    }
+    else if(VariantType == 6)
+    {
+        struct VariantList Data;
+    }
+};
+
+struct VariantMapPair {
+    UTF8Str Key;
+    struct Variant Value;
+};
+
+struct VariantMap {
+    VLQU Size;
+    struct VariantMapPair Variants[VLQUValue(Size)] <optimize=false>;
+};
+
+struct VariantList {
+    VLQU Size;
+    struct Variant Variants[VLQUValue(Size)] <optimize=false>;
+};
+
+typedef struct {
+    UTF8Str Name;
+    VLQS StackSize;
+    struct Variant ItemVariant;
+} ItemDescriptor;
+
+typedef struct {
+    unsigned char BagIndex_UNKNOWN;
+    unsigned char UNKNOWN;
+    VLQU BagSize;
+    ItemDescriptor Items[VLQUValue(BagSize)] <optimize=false>;
+} ItemBag;
+
+typedef struct {
+    unsigned char Unknown1[8];
+    ItemBag Bag1;
+    
+} PlayerInventory;
+
 typedef struct {
     unsigned char Header[6];
     int VersionNumber; // Hard coded as 418 at the moment
@@ -168,7 +266,8 @@ typedef struct {
     StatusEntityParameters StatusEntityParms;
     Status PlayerStatus;
     UTF8Str Description;
-    double UnkonwnDouble;
+    double PlayTime;
+    PlayerInventory Inventory;
 } StarSave;
 
 StarSave Save;
