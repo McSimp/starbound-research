@@ -245,22 +245,22 @@ typedef struct {
 } ItemDescriptor;
 
 typedef struct {
-    unsigned char BagIndex_UNKNOWN;
-    unsigned char UNKNOWN;
     VLQU BagSize;
     ItemDescriptor Items[VLQUValue(BagSize)] <optimize=false>;
 } ItemBag;
 
 typedef struct {
+    VLQU DatastreamSize;
     unsigned char Unknown1[8];
     ItemBag Bag1;
-    
+    ItemBag Bag2;
+    ItemBag Hotbar;
 } PlayerInventory;
 
 typedef struct {
     unsigned char Header[6];
     int VersionNumber; // Hard coded as 418 at the moment
-    VLQU UnknownNumber;
+    VLQU DatastreamSize;
     UUID PlayerUUID;
     HumanoidIdentity Identity;
     StatusEntityParameters StatusEntityParms;
