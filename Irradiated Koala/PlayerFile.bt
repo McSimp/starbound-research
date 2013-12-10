@@ -2,7 +2,7 @@
 //--- 010 Editor v5.0 Binary Template
 //--------------------------------------
 
-#include "BaseTypes.bt"
+#include "../BaseTypes.bt"
 
 typedef enum <unsigned char> {
     MALE,
@@ -204,9 +204,9 @@ typedef struct {
 // TODO
 typedef struct {
     VLQU DatastreamSize;
-    StringList UnknownStrings;
-    TechModule Test;
-    //unsigned char Data[VLQUValue(DatastreamSize)];
+    //StringList UnknownStrings;
+    //TechModule Test;
+    unsigned char Data[VLQUValue(DatastreamSize)];
 } TechController;
 
 typedef struct {
@@ -228,7 +228,7 @@ typedef struct {
 
 typedef struct {
     unsigned char Header[6];
-    int VersionNumber; // Hard coded as 418 at the moment
+    int VersionNumber; // 418
     VLQU DatastreamSize;
     UUID PlayerUUID;
     HumanoidIdentity Identity;
@@ -239,8 +239,8 @@ typedef struct {
     PlayerInventory Inventory;
     PlayerBlueprintLibrary Blueprints;
     TechController TechControllerConfig;
-    //ArmorWearer PlayerArmor;
-    //ToolUser PlayerTools;
+    ArmorWearer PlayerArmor;
+    ToolUser PlayerTools;
 } StarSave;
 
 StarSave Save;

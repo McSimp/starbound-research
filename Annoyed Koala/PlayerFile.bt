@@ -1,0 +1,246 @@
+//--------------------------------------
+//--- 010 Editor v5.0 Binary Template
+//--------------------------------------
+
+#include "../BaseTypes.bt"
+
+typedef enum <unsigned char> {
+    MALE,
+    FEMALE
+} GenderType;
+
+typedef struct {
+    unsigned char R;
+    unsigned char G;
+    unsigned char B;
+    unsigned char A;
+} RGBAColor;
+
+// Not 100% sure on this
+typedef struct {
+    float R;
+    float G;
+    float B;
+} RGB3F;
+
+typedef struct {
+    float X;
+    float Y;
+} Vec2F;
+
+typedef struct {
+    UTF8Str Idle;
+    UTF8Str ArmIdle;
+    Vec2F HeadOffset;
+    Vec2F ArmOffset;
+} Personality;
+
+typedef struct {
+    UTF8Str Name;
+    UTF8Str Species;
+    GenderType Gender;
+    UTF8Str HairGroup;
+    UTF8Str HairType;
+    UTF8Str HairDirectives;
+    UTF8Str BodyDirectives;
+    UTF8Str FacialHairGroup;
+    UTF8Str FacialHairType;
+    UTF8Str FacialHairDirectives;
+    UTF8Str FacialMaskGroup;
+    UTF8Str FacialMaskType;
+    UTF8Str FacialMaskDirectives;
+    Personality _Personality;
+    RGBAColor FavoriteColor;
+} HumanoidIdentity;
+
+typedef struct {
+    bool GodMode;
+    Vec2F BodyTemperatureRangeLow;
+    float IdealTemperature;
+    float BaseMaxWarmth;
+    float WarmthTransferRate;  // baseMaxWarmth * (1/60) * (1 / warmthTransferRate)
+    float WarmthTransferRateCap;
+    float ComfortRegen;
+    float BaseMaxHealth;
+    float BaseMaxEnergy;
+    float EnergyReplenishmentRate;
+    float BaseMaxFood;
+    float FoodDepletionRate; 
+    float BaseMaxBreath;
+    float BreathReplenishmentRate;
+    float BreathDepletionRate;
+    float WindChillFactor;
+    UTF8Str BodyMaterialKind;
+    UTF8Str DamageConfig;
+} StatusEntityParameters;
+
+typedef struct {
+    float Value;
+    float Maxmium;
+} StatusValue;
+
+typedef struct {
+    VLQU Size;
+    UTF8Str Strings[VLQUValue(Size)] <optimize=false>; 
+} StringList;
+
+typedef struct {
+    StatusValue Health;
+    StatusValue Energy;
+    StatusValue Warmth; // Is this right?
+    StatusValue Food;
+    StatusValue Breath;
+    bool Invulnerable;
+    RGB3F GlowColor;
+    StringList UnknownStrList1;
+    StringList UnknownStrList2;
+} Status;
+
+struct Variant {
+    unsigned char VariantType;
+    if(VariantType == 7)
+    {
+        struct VariantMap Data;
+    }
+    else if(VariantType == 2)
+    {
+        double Data;
+    }
+    else if(VariantType == 5)
+    {
+        UTF8Str Data;
+    }
+    else if(VariantType == 4)
+    {
+        VLQS Data;
+    }
+    else if(VariantType == 3)
+    {
+        bool Data;
+    }
+    else if(VariantType == 6)
+    {
+        struct VariantList Data;
+    }
+};
+
+struct VariantMapPair {
+    UTF8Str Key;
+    struct Variant Value;
+};
+
+struct VariantMap {
+    VLQU Size;
+    struct VariantMapPair Variants[VLQUValue(Size)] <optimize=false>;
+};
+
+struct VariantList {
+    VLQU Size;
+    struct Variant Variants[VLQUValue(Size)] <optimize=false>;
+};
+
+typedef struct {
+    UTF8Str Name;
+    VLQS Count;
+    struct Variant ItemVariant;
+} ItemDescriptor;
+
+typedef struct {
+    VLQU Size;
+    ItemDescriptor Items[VLQUValue(Size)] <optimize=false>;
+} ItemBag;
+
+typedef enum <unsigned char> {
+    INVALID = 0,
+    Bag = 1,
+    TileBag = 2,
+    ActionBar = 3,
+    Equipment = 4,
+    Wieldable = 5
+} BagType;
+
+typedef struct {
+    BagType Bag;
+    VLQS SlotNumber;
+} InventorySlot;
+
+typedef struct {
+    VLQU DatastreamSize;
+    uint64 Money;
+    ItemBag BagContents;
+    ItemBag TileBagContents;
+    ItemBag ActionBarContents;
+    ItemBag Equipment;
+    ItemBag Wieldable;
+    ItemDescriptor SwapActive_UNKNOWN;
+    InventorySlot PrimaryHeldSlot;
+    InventorySlot AltHeldSlot;
+} PlayerInventory;
+
+typedef struct {
+    VLQU DatastreamSize;
+    VLQU BlueprintCount;
+    ItemDescriptor Blueprints[VLQUValue(BlueprintCount)] <optimize=false>;
+} PlayerBlueprintLibrary;
+
+// TODO
+typedef struct {
+    UTF8Str ProcessingDirectives;
+    float Zoom;
+    Vec2F BasePosition;
+    bool IsFlipped;
+    float FlippedOffset_UNKNOWN;
+    UTF8Str Unknown_State1; // This is actually more than 1 string probably
+} NetworkedAnimatorState;
+
+// TODO
+typedef struct {
+    NetworkedAnimatorState AnimState;
+    bool IsActive;
+    bool Unknown;
+    VariantMap Config;
+} TechModule;
+
+// TODO
+typedef struct {
+    VLQU DatastreamSize;
+    //StringList UnknownStrings;
+    //TechModule Test;
+    unsigned char Data[VLQUValue(DatastreamSize)];
+} TechController;
+
+typedef struct {
+    ItemDescriptor HeadItem;
+    ItemDescriptor ChestItem;
+    ItemDescriptor LegsItem;
+    ItemDescriptor BackItem;
+    ItemDescriptor HeadSocItem;
+    ItemDescriptor ChestSocItem;
+    ItemDescriptor LegsSocItem;
+    ItemDescriptor BackSocItem;
+} ArmorWearer;
+
+typedef struct {
+    ItemDescriptor PrimaryHandItem;
+    ItemDescriptor AltHandItem;
+    bool SuppressItems; // Don't know what this is for
+} ToolUser;
+
+typedef struct {
+    unsigned char Header[8];
+    int VersionNumber; // 423
+    VLQU DatastreamSize;
+    UUID PlayerUUID;
+    HumanoidIdentity Identity;
+    StatusEntityParameters StatusEntityParms;
+    Status PlayerStatus;
+    UTF8Str Description;
+    double PlayTime;
+    PlayerInventory Inventory;
+    PlayerBlueprintLibrary Blueprints;
+    TechController TechControllerConfig;
+    ArmorWearer PlayerArmor;
+    ToolUser PlayerTools;
+} StarSave;
+
+StarSave Save;

@@ -2,7 +2,7 @@
 //--- 010 Editor v5.0 Script File
 //--------------------------------------
 
-#include "BaseTypes.bt"
+#include "../BaseTypes.bt"
 
 typedef VLQS TeamType <read=TeamTypeRead>;
 
@@ -68,9 +68,10 @@ typedef struct {
     // Sectors status (unlocked/locked)
     VLQU NumSectors;
     SectorStatus Sectors[VLQUValue(NumSectors)] <optimize=false>;
-
-    VLQU UnknownCount;
-    SystemCoordinate UnknownCoordaintes[VLQUValue(UnknownCount)] <optimize=false>;
+    
+    // I'm not 100% sure if this is actually visited
+    VLQU NumVisited;
+    SystemCoordinate VisitedSystems[VLQUValue(NumVisited)] <optimize=false>;
 
     WorldCoordinate CurrentWorld;
     WorldCoordinate HomeWorld;
@@ -78,7 +79,7 @@ typedef struct {
 
 typedef struct {
     unsigned char Header[6];
-    int VersionNumber; // Hard coded as 418 at the moment
+    int VersionNumber; // 423
     VLQU DatastreamSize;
     bool IsAdmin;
     EntityDamageTeam Team;
