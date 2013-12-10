@@ -145,7 +145,7 @@ typedef struct {
     Vec2F BodyTemperatureRangeLow;
     float IdealTemperature;
     float BaseMaxWarmth;
-    float WarmthTransferRate_MANIPULATED;  // baseMaxWarmth * 0.016666668 / warmthTransferRate
+    float WarmthTransferRate;  // baseMaxWarmth * (1/60) * (1 / warmthTransferRate)
     float WarmthTransferRateCap;
     float ComfortRegen;
     float BaseMaxHealth;
@@ -272,7 +272,12 @@ typedef struct {
 
 // TODO
 typedef struct {
-    
+    UTF8Str ProcessingDirectives;
+    float Zoom;
+    Vec2F BasePosition;
+    bool IsFlipped;
+    float FlippedOffset_UNKNOWN;
+    UTF8Str Unknown_State1; // This is actually more than 1 string probably
 } NetworkedAnimatorState;
 
 // TODO
@@ -286,7 +291,9 @@ typedef struct {
 // TODO
 typedef struct {
     VLQU DatastreamSize;
-    unsigned char Data[VLQUValue(DatastreamSize)];
+    StringList UnknownStrings;
+    TechModule Test;
+    //unsigned char Data[VLQUValue(DatastreamSize)];
 } TechController;
 
 typedef struct {
@@ -317,10 +324,10 @@ typedef struct {
     UTF8Str Description;
     double PlayTime;
     PlayerInventory Inventory;
-    PlayerBlueprintLibrary BlueprintLibrary;
+    PlayerBlueprintLibrary Blueprints;
     TechController TechControllerConfig;
-    ArmorWearer PlayerArmor;
-    ToolUser PlayerTools;
+    //ArmorWearer PlayerArmor;
+    //ToolUser PlayerTools;
 } StarSave;
 
 StarSave Save;
