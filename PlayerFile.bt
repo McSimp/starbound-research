@@ -23,28 +23,26 @@ typedef struct {
 } VLQU <read=VLQURead, comment="Unsigned little-endian variable length quantity">;
 
 // get the actual uint value of the VLQ
-uint VLQUValue(VLQU &u) {
-    local uint result;
+uint64 VLQUValue(VLQU &u) {
+    local uint64 result;
     local ubyte cur;
     local uint i;
     
-    result = u.val[0];
-    if(result & 0x80)
+    result = 0;
+    i = 0;
+
+    do
     {
-        result &= 0x7F;
-        i = 1;
-        do
-        {
-            cur = u.val[i++];
-            result = (result << 7) + (cur & 0x7F);
-        }
-        while(cur & 0x80);
+        cur = u.val[i++];
+        result = (result << 7) | (cur & 0x7F);    
     }
+    while(cur & 0x80);
 
     return result;
 }
 
-string VLQURead(VLQU &u) {
+string VLQURead(VLQU &u)
+{
     local string s;
     s = SPrintf(s, "%d", VLQUValue(u));
     return s;
@@ -52,22 +50,16 @@ string VLQURead(VLQU &u) {
 
 typedef VLQU VLQS <read=VLQSRead>;
 
-int VLQSValue(VLQS &u)
+int64 VLQSValue(VLQS &u)
 {
-    local uint value;
+    local uint64 value;
     value = VLQUValue(u);
-
-    if(value == 0)
-    {
-        return -1;
-    }
-    else
-    {
-        return value - 1;
-    }
+    
+    return value - 1;
 }
 
-string VLQSRead(VLQS &u) {
+string VLQSRead(VLQS &u)
+{
     local string s;
     s = SPrintf(s, "%d", VLQSValue(u));
     return s;
@@ -85,7 +77,8 @@ typedef struct {
     char String[VLQUValue(Length)] <optimize=false>;
 } UTF8Str <read=UTF8StrRead>;
 
-string UTF8StrRead(UTF8Str &str) {
+string UTF8StrRead(UTF8Str &str)
+{
     local string s;
     if(VLQUValue(str.Length) > 0)
     {
@@ -277,11 +270,41 @@ typedef struct {
     ItemDescriptor Blueprints[VLQUValue(BlueprintCount)] <optimize=false>;
 } PlayerBlueprintLibrary;
 
+// TODO
+typedef struct {
+    
+} NetworkedAnimatorState;
+
+// TODO
+typedef struct {
+    NetworkedAnimatorState AnimState;
+    bool IsActive;
+    bool Unknown;
+    VariantMap Config;
+} TechModule;
+
+// TODO
 typedef struct {
     VLQU DatastreamSize;
-    StringList UnknownStrings;
-    // more unknown data
+    unsigned char Data[VLQUValue(DatastreamSize)];
 } TechController;
+
+typedef struct {
+    ItemDescriptor HeadItem;
+    ItemDescriptor ChestItem;
+    ItemDescriptor LegsItem;
+    ItemDescriptor BackItem;
+    ItemDescriptor HeadSocItem;
+    ItemDescriptor ChestSocItem;
+    ItemDescriptor LegsSocItem;
+    ItemDescriptor BackSocItem;
+} ArmorWearer;
+
+typedef struct {
+    ItemDescriptor PrimaryHandItem;
+    ItemDescriptor AltHandItem;
+    bool SuppressItems; // Don't know what this is for
+} ToolUser;
 
 typedef struct {
     unsigned char Header[6];
@@ -296,6 +319,8 @@ typedef struct {
     PlayerInventory Inventory;
     PlayerBlueprintLibrary BlueprintLibrary;
     TechController TechControllerConfig;
+    ArmorWearer PlayerArmor;
+    ToolUser PlayerTools;
 } StarSave;
 
 StarSave Save;
