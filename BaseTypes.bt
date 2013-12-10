@@ -1,0 +1,88 @@
+//////////////////////////////////////////////////
+// VLQ Stuff
+//////////////////////////////////////////////////
+
+typedef struct {
+    ubyte val <comment="VLQ element">;
+    if(val > 0x7f) {
+        ubyte val <comment="VLQ element">;
+        if (val > 0x7f) {
+            ubyte val <comment="VLQ element">;
+            if(val > 0x7f) {
+                ubyte val <comment="VLQ element">;
+                if(val > 0x7f) {
+                    ubyte val <comment="VLQ element">;
+                }
+            }
+        }
+    }
+} VLQU <read=VLQURead, comment="Unsigned little-endian variable length quantity">;
+
+// get the actual uint value of the VLQ
+uint64 VLQUValue(VLQU &u) {
+    local uint64 result;
+    local ubyte cur;
+    local uint i;
+    
+    result = 0;
+    i = 0;
+
+    do
+    {
+        cur = u.val[i++];
+        result = (result << 7) | (cur & 0x7F);    
+    }
+    while(cur & 0x80);
+
+    return result;
+}
+
+string VLQURead(VLQU &u)
+{
+    local string s;
+    s = SPrintf(s, "%d", VLQUValue(u));
+    return s;
+}
+
+typedef VLQU VLQS <read=VLQSRead>;
+
+int64 VLQSValue(VLQS &u)
+{
+    local uint64 value;
+    value = VLQUValue(u);
+    
+    return value - 1;
+}
+
+string VLQSRead(VLQS &u)
+{
+    local string s;
+    s = SPrintf(s, "%d", VLQSValue(u));
+    return s;
+}
+
+typedef unsigned char bool;
+
+typedef struct {
+    bool Initialized;
+    unsigned char Data[16];
+} UUID;
+
+typedef struct {
+    VLQU Length;
+    char String[VLQUValue(Length)] <optimize=false>;
+} UTF8Str <read=UTF8StrRead>;
+
+string UTF8StrRead(UTF8Str &str)
+{
+    local string s;
+    if(VLQUValue(str.Length) > 0)
+    {
+        s = SPrintf(s, "%s", str.String);
+    }
+    else
+    {
+        s = "";
+    }
+    return s;
+}

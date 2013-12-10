@@ -1,0 +1,89 @@
+//--------------------------------------
+//--- 010 Editor v5.0 Script File
+//--------------------------------------
+
+#include "BaseTypes.bt"
+
+typedef VLQS TeamType <read=TeamTypeRead>;
+
+string TeamTypeRead(TeamType &u)
+{
+    local int64 type;
+    type = VLQSValue(u);
+    if(type == 0) {
+        return "null";
+    } else if(type == 1) {
+        return "friendly";
+    } else if(type == 2) {
+        return "enemy";
+    } else if(type == 3) {
+        return "pvp";
+    } else if(type == 4) {
+        return "passive";
+    } else if(type == 5) {
+        return "ghostly";
+    } else if(type == 6) {
+        return "emitter";
+    } else if(type == 7) {
+        return "indiscriminate";
+    } else {
+        return "INVALID";
+    }
+}
+
+typedef struct {
+    TeamType Type;
+    VLQS Unknown;
+} EntityDamageTeam;
+
+typedef struct {
+    int X;
+    int Y;
+    int Z;
+} Vec3I;
+
+typedef struct {
+    UTF8Str Sector;
+    Vec3I Location;
+} SystemCoordinate;
+
+typedef struct {
+    UTF8Str SectorName;
+    bool Unlocked;
+} SectorStatus;
+
+typedef struct {
+    SystemCoordinate System;
+    int PlanetaryBodyNumber;
+    int SatelliteBodyNumber;
+} WorldCoordinate;
+
+typedef struct {
+    VLQU DatastreamSize;
+
+    // Recently visited systems
+    VLQU NumRecentlyVisited;
+    SystemCoordinate RecentlyVisited[VLQUValue(NumRecentlyVisited)] <optimize=false>;
+
+    // Sectors status (unlocked/locked)
+    VLQU NumSectors;
+    SectorStatus Sectors[VLQUValue(NumSectors)] <optimize=false>;
+
+    VLQU UnknownCount;
+    SystemCoordinate UnknownCoordaintes[VLQUValue(UnknownCount)] <optimize=false>;
+
+    WorldCoordinate CurrentWorld;
+    WorldCoordinate HomeWorld;
+} CelestialLog;
+
+typedef struct {
+    unsigned char Header[6];
+    int VersionNumber; // Hard coded as 418 at the moment
+    VLQU DatastreamSize;
+    bool IsAdmin;
+    EntityDamageTeam Team;
+    CelestialLog Log;
+} StarClientContext;
+
+// File name = clientUUID.clientcontext
+StarClientContext Context;
