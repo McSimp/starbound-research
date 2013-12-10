@@ -1,0 +1,48 @@
+//--------------------------------------
+//--- 010 Editor v5.0 Binary Template
+//--------------------------------------
+
+#include "../BaseTypes.bt"
+
+typedef struct {
+    unsigned char Magic[4]; // BTDB
+    int64 RootPointer;
+    bool RootIsLeaf;
+    unsigned char Align1[19];
+
+    // Now we have header metadata
+    VLQU MetadataLength;
+    UTF8Str FormatIdentifier; // compare to Star::SimpleDatabase + 212
+    int KeySize; // compare to Star::SimpleDatabase + 216
+} BTreeDBUserHeader;
+
+typedef struct {
+    // First 32 bytes
+    unsigned char Magic[4]; // SBSF
+    int HeaderSize;
+    int BlockSize;
+    unsigned char Unknown1[8];
+    unsigned char Align1[12];
+    
+    BTreeDBUserHeader UserHeader;
+
+    unsigned char Align2[HeaderSize - sizeof(UserHeader) - 32];
+} BlockStorage;
+
+BlockStorage DB;
+
+/*
+For playerCodex:
+Star::CodexManager::CodexManager
+    Star::VariantDatabase::VariantDatabase
+        -> Creates simpledatabase object
+        Star::SimpleDatabase::open
+            Star::BTreeDatabase<Star::ByteArray_Star::ByteArray>::open
+                Star::BlockStorage::open -> deals with first 32 bytes
+                    -> reads the magic in BTreeDBUserHeader to make sure it's right
+                Star::BTreeDatabase<Star::ByteArray_Star::ByteArray>::readRoot
+                    -> reads in RootPointer and RootIsLeaf
+            Star::BTreeDatabase<Star::ByteArray_Star::ByteArray>::readHeaderMetadata
+            -> returns bytearray with contents being the data read after the VLQU length
+                -> reads everything from [32, userHeaderSize) in the user header
+*/
