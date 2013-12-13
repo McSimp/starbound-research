@@ -243,4 +243,5 @@ typedef struct {
     ToolUser PlayerTools;
 } StarSave;
 
+BigEndian();
 StarSave Save;

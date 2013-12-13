@@ -87,4 +87,5 @@ typedef struct {
 } StarClientContext;
 
 // File name = clientUUID.clientcontext
+BigEndian();
 StarClientContext Context;
