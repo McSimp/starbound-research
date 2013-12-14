@@ -36,11 +36,15 @@ def getPath(root, file):
     return path[2:].replace("\\", "/")
 
 imageKeys = ["inventoryIcon", "image"]
-def getImageFromData(data):
+def getImagePathFromData(root, data):
     # Not all items just have an "inventoryIcon"
     for key in imageKeys:
         if key in data:
-            return data[key]
+            icon = data[key]
+            if icon.startswith("/"):
+                return icon[1:]
+            else:
+                return getPath(root, icon)
     return None
 
 def getItemDetails(root, filename):
@@ -57,12 +61,7 @@ def getItemDetails(root, filename):
         itemName = data["objectName"]
 
     # Not all items have a static inventory icon
-    image = getImageFromData(data)
-    if image is not None:
-        iconPath = getPath(root, image)
-    else:
-        print("No image for: " + itemPath)
-        iconPath = None
+    iconPath = getImagePathFromData(root, data)
 
     return itemName, { "itemPath": itemPath, "iconPath": iconPath }
 
