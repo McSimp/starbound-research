@@ -93,6 +93,6 @@ for itemType in itemTypes:
     allItems[itemType] = getAllItems(itemType)
 
 outFile = open("items.json", "w")
-json.dump(allItems, outFile)
+json.dump(allItems, outFile, sort_keys = False, indent = 4)
 
 print("All items written to items.json")
