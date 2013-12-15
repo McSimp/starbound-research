@@ -9,6 +9,16 @@ typedef enum <unsigned char> {
     FEMALE
 } GenderType;
 
+// TODO
+typedef enum <int> {
+    texture_perturb_normal,
+    Stand,
+    Fly,
+    Sit,
+    Fall,
+    Hidden
+} AppearanceType;
+
 typedef struct {
     unsigned char R;
     unsigned char G;
@@ -201,11 +211,132 @@ typedef struct {
     VariantMap Config;
 } TechModule;
 
+typedef struct {
+    float GroundMovementModifier;
+    float LiquidMovementModifier;
+    float GlideModifier;
+    float RunModifier;
+    float JumpModifier;
+} ActorMovementModifiers;
+
+// A maybe type encapsulates an optional value
+typedef struct {
+    bool NotNull;
+    if(NotNull)
+    {
+        float Value;
+    }
+} Maybe_float;
+
+typedef struct {
+    bool NotNull;
+    if(NotNull)
+    {
+        bool Value;
+    }
+} Maybe_bool;
+
+typedef struct {
+    bool NotNull;
+    if(NotNull)
+    {
+        VLQU VertexCount;
+        Vec2F Vertices[VLQUValue(VertexCount)] <optimize=false>;
+    }
+} Maybe_Polygon;
+
+typedef struct {
+    bool NotNull;
+    if(NotNull)
+    {
+        int Value;
+    }
+} Maybe_int;
+
+typedef struct {
+    Maybe_float JumpSpeed;
+    Maybe_float JumpControlForce;
+    Maybe_float JumpInitialPercentage;
+    Maybe_float JumpHoldTime;
+    Maybe_float Unknown; // Never appears to be set, but still appears in save file
+    Maybe_bool MultiJump;
+    Maybe_float ReJumpDelay;
+    Maybe_bool AutoJump;
+    Maybe_bool CollisionCancelled;
+} ActorJumpProfile;
+
+typedef struct {
+    Maybe_float Mass;
+    Maybe_float GravityMultiplier;
+    Maybe_float LiquidBuoyancy;
+    Maybe_float AirBuoyancy;
+    Maybe_float BounceFactor;
+    Maybe_float MaxMovementPerStep;
+    Maybe_float MaximumCorrection;
+    Maybe_Polygon StandingPoly;
+    Maybe_Polygon CrouchingPoly;
+    Maybe_float WalkSpeed;
+    Maybe_float RunSpeed;
+    Maybe_float FlySpeed;
+    Maybe_bool RunningSuppressed;
+    Maybe_bool JumpingSuppressed;
+    Maybe_float AirFriction;
+    Maybe_float LiquidFriction;
+    Maybe_float LiquidImpedance;
+    Maybe_float NormalGroundFriction;
+    Maybe_float AmbulatingGroundFriction;
+    Maybe_float SkiddingGroundFriction;
+    Maybe_float GroundForce;
+    Maybe_float AirForce;
+    Maybe_float LiquidForce;
+    ActorJumpProfile AirJumpProfile;
+    ActorJumpProfile LiquidJumpProfile;
+    Maybe_float FallStatusSpeedMin;
+    Maybe_int FallThroughSustainFrames;
+    Maybe_bool CollisionEnabled;
+    Maybe_bool FrictionEnabled;
+    Maybe_bool GravityEnabled;
+    Maybe_bool GroundSlideMovementEnabled;
+    Maybe_float SlopeSlidingFactor;
+    Maybe_int SlaveUpdateSkip;
+    Maybe_int SlaveUpdateSkipSmear;
+    Maybe_float SlaveCollisionGrace;
+    Maybe_float MasterSleepSpeed;
+    Maybe_int MasterSleepBegin;
+    Maybe_int MasterSleepUpdateSkip;
+    Maybe_int MasterSleepUpdateSkipSmear;
+} ActorMovementParameters;
+
+typedef struct {
+    Vec2F Position;
+    Vec2F Velocity;
+    bool Stunned;
+    bool Skidding;
+    bool MovementDisabled;
+    bool ActionListeningDisabled;
+    bool Walking;
+    bool Running;
+    bool Crouching;
+    bool Falling;
+    bool Jumping;
+} ActorMovementController;
+
 // TODO
 typedef struct {
     VLQU DatastreamSize;
-    //StringList UnknownStrings;
-    //TechModule Test;
+    /*
+    StringList LoadedTech;
+    TechModule Test;
+    
+    ActorMovementParameters UnknownMovementParameters;
+    ActorMovementParameters CustomMovementParameters;
+    ActorMovementModifiers CustomMovementModifiers;
+    ActorMovementController Movement;
+    unsigned char MovingDirection;
+    AppearanceType ParentAppearance;
+    Vec2F ParentOffset;
+    bool ToolUsageSuppressed;
+    */
     unsigned char Data[VLQUValue(DatastreamSize)];
 } TechController;
 
