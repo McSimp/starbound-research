@@ -97,13 +97,13 @@ typedef struct {
 typedef struct {
     StatusValue Health;
     StatusValue Energy;
-    StatusValue Warmth; // Is this right?
+    StatusValue Warmth;
     StatusValue Food;
     StatusValue Breath;
     bool Invulnerable;
     RGB3F GlowColor;
-    StringList UnknownStrList1;
-    StringList UnknownStrList2;
+    StringList ActiveEffects;
+    StringList ActiveEffectSources;
 } Status;
 
 struct Variant {
@@ -182,7 +182,7 @@ typedef struct {
     ItemBag ActionBarContents;
     ItemBag Equipment;
     ItemBag Wieldable;
-    ItemDescriptor SwapActive_UNKNOWN;
+    ItemDescriptor ActiveItem;
     InventorySlot PrimaryHeldSlot;
     InventorySlot AltHeldSlot;
 } PlayerInventory;
