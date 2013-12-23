@@ -1,32 +1,85 @@
-//--------------------------------------
-//--- 010 Editor v5.0 Binary Template
-//--------------------------------------
+//-----------------------------------------------------------------------
+// Starbound Block Storage Format
+// - The code in Starbound is based on https://bitbucket.org/kyren/yuedb
+// - (but in C++ obviously). It's basically a B+ Tree (not to be confused
+// - with a binary tree) so if you're unfamiliar on how they work you 
+// - should read a few articles on them.
+//-----------------------------------------------------------------------
 
 #include "../BaseTypes.bt"
+
+typedef struct {
+    VLQU MetadataLength;
+    UTF8Str FormatIdentifier; // compare to Star::SimpleDatabase + 212
+    int KeySize; // compare to Star::SimpleDatabase + 216
+} HeaderMetadata;
 
 typedef struct {
     unsigned char Magic[4]; // BTDB
     int64 RootPointer;
     bool RootIsLeaf;
-    unsigned char Align1[19];
-
-    // Now we have header metadata
-    VLQU MetadataLength;
-    UTF8Str FormatIdentifier; // compare to Star::SimpleDatabase + 212
-    int KeySize; // compare to Star::SimpleDatabase + 216
+    unsigned char Align[19];
+    HeaderMetadata Metadata;
 } BTreeDBUserHeader;
+
+typedef struct {
+    unsigned char Key[DB.UserHeader.Metadata.KeySize];
+    int64 Pointer;
+} IndexElement;
+
+typedef struct {
+    byte Level;
+    int NumChildren;
+    int64 BeginPointer;
+    IndexElement Children[NumChildren] <optimize=false>;
+    unsigned char Align[DB.BlockSize - 15 - sizeof(Children)];
+} IndexBlock;
+
+typedef struct {
+    unsigned char Key[DB.UserHeader.Metadata.KeySize];
+    VLQU ValueLength;
+    unsigned char Value[VLQUValue(ValueLength)];
+} LeafElement;
+
+typedef struct {
+    int NumChildren;
+    LeafElement Children[NumChildren] <optimize=false>;
+    unsigned char Align[DB.BlockSize - 14 - sizeof(Children)];
+    int64 NextLeafPointer;
+} LeafBlock;
+
+typedef struct {
+    int NumChildren;
+    unsigned char Data[DB.BlockSize - 14];
+    int64 NextLeafPointer;
+} LeafDataBlock;
+
+typedef struct {
+    unsigned char Magic[2]; // Either LL or II for Leaf or Index
+    if(Magic[0] == 'I' && Magic[1] == 'I')
+    {
+        IndexBlock BlockData;
+    }
+    else if(Magic[0] == 'L' && Magic[1] == 'L')
+    {
+        LeafBlock BlockData;
+    }
+} Block;
 
 typedef struct {
     // First 32 bytes
     unsigned char Magic[4]; // SBSF
     int HeaderSize;
     int BlockSize;
-    unsigned char Unknown1[8];
-    unsigned char Align1[12];
-    
+    int64 HeadFreeIndexBlock;
+    unsigned char Unused[12];
     BTreeDBUserHeader UserHeader;
 
-    unsigned char Align2[HeaderSize - sizeof(UserHeader) - 32];
+    unsigned char Align[HeaderSize - sizeof(UserHeader) - 32];
+    
+    //Block Blocks[(FileSize() - HeaderSize) / BlockSize] <optimize=false>;
+    FSeek(HeaderSize + (BlockSize * UserHeader.RootPointer));
+    Block RootBlock;
 } BlockStorage;
 
 BigEndian();
@@ -40,10 +93,13 @@ Star::CodexManager::CodexManager
         Star::SimpleDatabase::open
             Star::BTreeDatabase<Star::ByteArray_Star::ByteArray>::open
                 Star::BlockStorage::open -> deals with first 32 bytes
-                    -> reads the magic in BTreeDBUserHeader to make sure it's right
+                -> reads the magic in BTreeDBUserHeader to make sure it's right
                 Star::BTreeDatabase<Star::ByteArray_Star::ByteArray>::readRoot
                     -> reads in RootPointer and RootIsLeaf
             Star::BTreeDatabase<Star::ByteArray_Star::ByteArray>::readHeaderMetadata
             -> returns bytearray with contents being the data read after the VLQU length
                 -> reads everything from [32, userHeaderSize) in the user header
+
+VRDB = VariantDatabase
+
 */
