@@ -3,62 +3,82 @@
 //////////////////////////////////////////////////
 
 typedef struct {
-    ubyte val <comment="VLQ element">;
-    if(val > 0x7f) {
-        ubyte val <comment="VLQ element">;
-        if (val > 0x7f) {
-            ubyte val <comment="VLQ element">;
-            if(val > 0x7f) {
-                ubyte val <comment="VLQ element">;
-                if(val > 0x7f) {
-                    ubyte val <comment="VLQ element">;
-                }
-            }
-        }
+    do
+    {
+        unsigned char more : 1;
+        unsigned char val  : 7;
     }
-} VLQU <read=VLQURead, comment="Unsigned little-endian variable length quantity">;
+    while(more);
+} VLQU <read=VLQURead, write=VLQUWrite>;
 
-// get the actual uint value of the VLQ
 uint64 VLQUValue(VLQU &u) {
     local uint64 result;
-    local ubyte cur;
     local uint i;
     
     result = 0;
     i = 0;
-
+    
     do
     {
-        cur = u.val[i++];
-        result = (result << 7) | (cur & 0x7F);    
+        result = (result << 7) | (u.val[i]);
     }
-    while(cur & 0x80);
-
+    while(u.more[i++]);
+    
     return result;
 }
 
-string VLQURead(VLQU &u)
-{
+void VLQUEncode(VLQU &u, uint64 target) {
+    //Does not normalize, to try to keep the field the same length.
+
+    local uint b = 0;
+    while(u.more[b++]);
+
+    Assert(target < (1 << (7 * b)), "There's not enough room to make that change.");
+
+    local uint i;
+    for(i = 0; i < b; i++)
+    {
+        u.val[i] = (target >> (7 * (b - i - 1))) & 0x7f;
+    }
+}
+
+string VLQURead(VLQU &u) {
     local string s;
-    s = SPrintf(s, "%d", VLQUValue(u));
+    s = SPrintf(s, "%Lu", VLQUValue(u));
     return s;
 }
 
-typedef VLQU VLQS <read=VLQSRead>;
+void VLQUWrite(VLQU &u, string s) {
+    local uint64 value;
+    SScanf(s, "%Lu", value);
+    VLQUEncode(u, value);
+}
 
-int64 VLQSValue(VLQS &u)
-{
+typedef VLQU VLQS <read=VLQSRead, write=VLQSWrite>;
+
+int64 VLQSValue(VLQS &u) {
     local uint64 value;
     value = VLQUValue(u);
     
     return value - 1;
 }
 
-string VLQSRead(VLQS &u)
-{
+void VLQSEncode(VLQS &u, int64 i) {
+    local uint64 value;
+    value = i + 1;
+    VLQUEncode(u, value);
+}
+
+string VLQSRead(VLQS &u) {
     local string s;
-    s = SPrintf(s, "%d", VLQSValue(u));
+    s = SPrintf(s, "%Ld", VLQSValue(u));
     return s;
+}
+
+void VLQSWrite(VLQS &u, string s) {
+    local int64 value;
+    SScanf(s, "%Ld", value);
+    VLQSEncode(u, value);
 }
 
 typedef unsigned char bool;
@@ -66,7 +86,40 @@ typedef unsigned char bool;
 typedef struct {
     bool Initialized;
     unsigned char Data[16];
-} UUID;
+} UUID <read=UUIDRead, write=UUIDWrite>;
+
+string UUIDRead(UUID &uuid) {
+    local string s;
+    if(!uuid.Initialized)
+    {
+        s = "";
+    }
+    else
+    {
+        s = SPrintf(s, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+                        uuid.Data[0], uuid.Data[1], uuid.Data[2], uuid.Data[3], uuid.Data[4], uuid.Data[5], uuid.Data[6], uuid.Data[7],
+                        uuid.Data[8], uuid.Data[9], uuid.Data[10], uuid.Data[11], uuid.Data[12], uuid.Data[13], uuid.Data[14], uuid.Data[15]);
+    }
+    return s;
+}
+
+void UUIDWrite(UUID &uuid, string newid)
+{
+    uuid.Initialized = 0;
+    local int len = Strlen(newid);
+    if(len == 0)
+    {
+        Memset(uuid.Data, 16, 0);
+        return;
+    }
+    Assert(len == 32, "Not a valid UUID.");
+    local int cnt = SScanf(newid, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
+                        uuid.Data[0], uuid.Data[1], uuid.Data[2], uuid.Data[3], uuid.Data[4], uuid.Data[5], uuid.Data[6], uuid.Data[7],
+                        uuid.Data[8], uuid.Data[9], uuid.Data[10], uuid.Data[11], uuid.Data[12], uuid.Data[13], uuid.Data[14], uuid.Data[15]);
+    Assert(cnt == 16, "Not a valid UUID.");
+    uuid.Initialized = 1;
+    return;
+}
 
 typedef struct {
     VLQU Length;

@@ -61,7 +61,13 @@ typedef struct {
     UTF8Str FacialMaskDirectives;
     Personality _Personality;
     RGBAColor FavoriteColor;
-} HumanoidIdentity;
+} HumanoidIdentity <read=IdentityRead>;
+
+string IdentityRead(HumanoidIdentity &id) {
+    local string s;
+    s = SPrintf(s, "%s, %s %s", UTF8StrRead(id.Name), UTF8StrRead(id.Species), EnumToString(id.Gender));
+    return s;
+}
 
 typedef struct {
     bool GodMode;
@@ -86,8 +92,23 @@ typedef struct {
 
 typedef struct {
     float Value;
-    float Maxmium;
-} StatusValue;
+    float Maximum;
+} StatusValue <read=StatusValueRead>;
+
+string StatusValueRead(StatusValue &statusValue) {
+    local string s;
+    local int w;
+    if(statusValue.Value % 1.0 > 0.01)
+    {
+        w = 2;
+    }
+    else
+    {
+        w = 0;
+    }
+    s = SPrintf(s, "%.*f/%.0f", w, statusValue.Value, statusValue.Maximum);
+    return s;
+}
 
 typedef struct {
     VLQU Size;
@@ -104,7 +125,19 @@ typedef struct {
     RGB3F GlowColor;
     StringList ActiveEffects;
     StringList ActiveEffectSources;
-} Status;
+} Status <read=StatusRead>;
+
+string StatusRead(Status &status) {
+    local string h = StatusValueRead(status.Health);
+    local string e = StatusValueRead(status.Energy);
+    local string w = StatusValueRead(status.Warmth);
+    local string f = StatusValueRead(status.Food);
+    local string b = StatusValueRead(status.Breath);
+    
+    local string s;
+    s = SPrintf(s, "%s HP, %s E, %s W, %s F, %s B", h, e, w, f, b);
+    return s;
+}
 
 struct Variant {
     unsigned char VariantType;
@@ -153,12 +186,38 @@ typedef struct {
     UTF8Str Name;
     VLQS Count;
     struct Variant ItemVariant;
-} ItemDescriptor;
+} ItemDescriptor <read=ItemRead>;
+
+string ItemRead(ItemDescriptor &item) {
+    local string s;
+    s = SPrintf(s, "%d %s", VLQSValue(item.Count), UTF8StrRead(item.Name));
+    return s;
+}
 
 typedef struct {
     VLQU Size;
     ItemDescriptor Items[VLQUValue(Size)] <optimize=false>;
-} ItemBag;
+} ItemBag <read=ItemBagRead>;
+
+string ItemBagRead(ItemBag &bag) {
+    local int count = 0;
+    local int types = 0;
+    local int i = 0;
+    
+    local string s;
+    
+    for(i = 0; i < VLQUValue(bag.Size); i++)
+    {
+        if(VLQSValue(bag.Items[i].Count) > 0)
+        {
+            types = types + 1;
+            count = count + VLQSValue(bag.Items[i].Count);
+        }
+    }
+    
+    s = SPrintf(s, "%d items of %d types", count, types);
+    return s;
+}
 
 typedef enum <unsigned char> {
     INVALID = 0,
@@ -357,8 +416,10 @@ typedef struct {
     bool SuppressItems; // Don't know what this is for
 } ToolUser;
 
+typedef unsigned char Magic[8];
+
 typedef struct {
-    unsigned char Header[8];
+    Magic Header <read=FLS8Read>; // Hack to make it display as a fixed-length, non-null-terminated string
     int VersionNumber; // 423
     VLQU DatastreamSize;
     UUID PlayerUUID;
@@ -373,6 +434,14 @@ typedef struct {
     ArmorWearer PlayerArmor;
     ToolUser PlayerTools;
 } StarSave;
+
+string FLS8Read(Magic source[]) {
+    local uchar target[9] = {0};
+    local string s;
+    Memcpy(target, source, 8);
+    s = SPrintf(s, "%s", target);
+    return s;
+}
 
 BigEndian();
 StarSave Save;
