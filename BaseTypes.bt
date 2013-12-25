@@ -105,19 +105,22 @@ string UUIDRead(UUID &uuid) {
 
 void UUIDWrite(UUID &uuid, string newid)
 {
-    uuid.Initialized = 0;
     local int len = Strlen(newid);
     if(len == 0)
     {
+        uuid.Initialized = 0;
         Memset(uuid.Data, 16, 0);
         return;
     }
+    local uchar newid_bytes[16] = {0};
     Assert(len == 32, "Not a valid UUID.");
     local int cnt = SScanf(newid, "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x",
-                        uuid.Data[0], uuid.Data[1], uuid.Data[2], uuid.Data[3], uuid.Data[4], uuid.Data[5], uuid.Data[6], uuid.Data[7],
-                        uuid.Data[8], uuid.Data[9], uuid.Data[10], uuid.Data[11], uuid.Data[12], uuid.Data[13], uuid.Data[14], uuid.Data[15]);
+                        newid_bytes[0], newid_bytes[1], newid_bytes[2], newid_bytes[3], newid_bytes[4], 
+                        newid_bytes[5], newid_bytes[6], newid_bytes[7], newid_bytes[8], newid_bytes[9], 
+                        newid_bytes[10], newid_bytes[11], newid_bytes[12], newid_bytes[13], newid_bytes[14], newid_bytes[15]);
     Assert(cnt == 16, "Not a valid UUID.");
     uuid.Initialized = 1;
+    Memcpy(uuid.Data, newid_bytes, 16);
     return;
 }
 
