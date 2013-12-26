@@ -190,7 +190,9 @@ typedef struct {
 
 string ItemRead(ItemDescriptor &item) {
     local string s;
-    s = SPrintf(s, "%d %s", VLQSValue(item.Count), UTF8StrRead(item.Name));
+    local uint64 i = VLQSValue(item.Count);
+    if(i==0) return "";
+    s = SPrintf(s, "%d %s", i, UTF8StrRead(item.Name));
     return s;
 }
 
