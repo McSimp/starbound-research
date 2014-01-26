@@ -1,0 +1,77 @@
+//--------------------------------------
+//--- 010 Editor v5.0 Binary Template
+//--------------------------------------
+#include "../BaseTypes.bt"
+
+struct Variant {
+    unsigned char VariantType;
+    if(VariantType == 7)
+    {
+        struct VariantMap Data;
+    }
+    else if(VariantType == 2)
+    {
+        double Data;
+    }
+    else if(VariantType == 5)
+    {
+        UTF8Str Data;
+    }
+    else if(VariantType == 4)
+    {
+        VLQS Data;
+    }
+    else if(VariantType == 3)
+    {
+        bool Data;
+    }
+    else if(VariantType == 6)
+    {
+        struct VariantList Data;
+    }
+};
+
+struct VariantMapPair {
+    UTF8Str Key;
+    struct Variant Value;
+};
+
+struct VariantMap {
+    VLQU Size;
+    struct VariantMapPair Variants[VLQUValue(Size)] <optimize=false>;
+};
+
+struct VariantList {
+    VLQU Size;
+    struct Variant Variants[VLQUValue(Size)] <optimize=false>;
+};
+
+typedef struct {
+    LittleEndian();
+    unsigned int Version;
+    BigEndian();
+    struct VariantList Variants; // Not 100% sure on this - might be slightly different
+} VersionedVariant;
+
+typedef struct {
+    UTF8Str Name;
+    VersionedVariant Data;
+} Entity;
+
+typedef unsigned char Magic[6];
+
+typedef struct {
+    Magic Header <read=FLS6Read>; // Hack to make it display as a fixed-length, non-null-terminated string
+    Entity PlayerEntity;
+} StarSave;
+
+string FLS6Read(Magic source[]) {
+    local uchar target[7] = {0};
+    local string s;
+    Memcpy(target, source, 6);
+    s = SPrintf(s, "%s", target);
+    return s;
+}
+
+BigEndian();
+StarSave Save;
