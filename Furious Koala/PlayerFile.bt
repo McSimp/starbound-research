@@ -19,7 +19,7 @@ struct Variant {
     }
     else if(VariantType == 4)
     {
-        VLQS Data;
+        VLQI Data;
     }
     else if(VariantType == 3)
     {

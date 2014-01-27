@@ -81,6 +81,47 @@ void VLQSWrite(VLQS &u, string s) {
     VLQSEncode(u, value);
 }
 
+typedef VLQU VLQI <read=VLQIRead, write=VLQIWrite>;
+
+int64 VLQIValue(VLQI &u) {
+    local uint64 value;
+    local int64 newValue;
+    value = VLQUValue(u);
+
+    newValue = value >> 1;
+    if (value & 1) {
+        newValue = ~newValue;
+    }
+
+    return newValue;
+}
+
+void VLQIEncode(VLQI &u, int64 i) {
+    local uint64 value;
+    i <<= 1;
+
+    if (i < 0) {
+        i = ~i;
+        i |= 1;
+    }
+
+    value = i;
+
+    VLQUEncode(u, value);
+}
+
+string VLQIRead(VLQI &u) {
+    local string s;
+    s = SPrintf(s, "%Ld", VLQIValue(u));
+    return s;
+}
+
+void VLQIWrite(VLQI &u, string s) {
+    local int64 value;
+    SScanf(s, "%Ld", value);
+    VLQIEncode(u, value);
+}
+
 typedef unsigned char bool;
 
 typedef struct {
